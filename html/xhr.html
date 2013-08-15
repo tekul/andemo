@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+
+</head>
+
+<body>
+  <script>
+
+
+
+var xhr = new XMLHttpRequest();
+xhr.open('GET', 'http://localhost:8080/metrics/aggregate-counters/bar');
+xhr.onreadystatechange = function () {
+  if (this.status == 200 && this.readyState == 4) {
+    console.log('response: ' + this.responseText);
+  }
+};
+xhr.send();
+</script>
+</body>
+</html>

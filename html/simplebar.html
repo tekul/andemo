@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<style type="text/css">
+
+body {
+  font: 10px sans-serif;
+  text-rendering: optimizelegibility;
+}
+
+.chart {
+  margin-left: 42px;
+  font: 10px sans-serif;
+  shape-rendering: crispEdges;
+}
+
+.chart rect {
+  stroke: white;
+  fill: steelblue;
+}
+
+.chart text.bar {
+  fill: white;
+}
+
+</style>
+</head>
+<body>
+<script src="d3.v3.min.js"></script>
+<script src="jquery-1.10.2.min.js"></script>
+<script>
+  var xdUrl="http://localhost:8080/metrics/aggregate-counters/bar?resolution=minute";
+
+  d3.json("aggcount.json")
+    //.header("Accept", "application/json")
+    .get(function(error, json) {
+      if (error) return console.warn(error);
+      var counts = new Array();
+      jQuery.each(json.counts, function(key, value) {
+        counts.push({time:key, count:value});
+      });
+      data = json.counts;
+//      chart = drawChart();
+    });
+
+  var data = [4, 8, 15, 16, 23, 42];
+
+  var chart = drawChart();
+
+  function drawChart() {
+    var chart = d3.select("body").append("svg")
+        .attr("class", "chart")
+        .attr("width", 430)
+        .attr("height", 20 * (data.length + 1))
+        .style("padding", "30px")
+        .append("g").attr("transform", "translate(10,15)");
+
+    var x = d3.scale.linear()
+      .domain([0, d3.max(data)])
+      .range([0, 420]);
+
+    chart.selectAll("line")
+      .data(x.ticks(10))
+      .enter().append("line")
+      .attr("x1", x)
+      .attr("x2", x)
+      .attr("y1", 0)
+      .attr("y2", 120)
+      .style("stroke", "#ccc");
+
+    chart.selectAll(".rule")
+      .data(x.ticks(10))
+      .enter().append("text")
+      .attr("class", "rule")
+      .attr("x", x)
+      .attr("y", 0)
+      .attr("dy", -3)
+      .attr("text-anchor", "middle")
+      .text(String);
+
+    chart.selectAll("rect")
+      .data(data)
+      .enter().append("rect")
+      .attr("y", function(d, i) { return i*20; })
+      .attr("width", function(d) {return x(d);})
+      .attr("height", 20);
+
+    chart.selectAll(".bar")
+      .data(data)
+      .enter().append("text")
+      .attr("class", "bar")
+      .attr("y", function(d, i) { return i*20 + 10; })
+      .attr("x", x)
+      .attr("dx", -3)
+      .attr("dy", ".35em")
+      .attr("text-anchor", "end")
+      .text(String);
+
+    chart.append("line")
+      .attr("y1", 0)
+      .attr("y2", 120)
+      .style("stroke", "#000");
+
+    return chart;
+  }
+
+</script>
+</body>
+</html>
