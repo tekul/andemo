@@ -28,36 +28,33 @@ body {
 </head>
 <body>
 <script src="d3.v3.min.js"></script>
-<script src="jquery-1.10.2.min.js"></script>
+<!-- script src="jquery-1.10.2.min.js"></script-->
 <script>
   var xdUrl="http://localhost:8080/metrics/aggregate-counters/bar?resolution=minute";
+  var data;
+  var chart;
 
   d3.json("aggcount.json")
-    //.header("Accept", "application/json")
     .get(function(error, json) {
       if (error) return console.warn(error);
       var counts = new Array();
-      jQuery.each(json.counts, function(key, value) {
-        counts.push({time:key, count:value});
-      });
-      data = json.counts;
-//      chart = drawChart();
+      data = d3.entries(json.counts);
+      chart = drawChart();
     });
 
-  var data = [4, 8, 15, 16, 23, 42];
-
-  var chart = drawChart();
-
   function drawChart() {
+    var barSize = 20;
+    // Scale the height to the number of data points
+    var h = barSize * data.length;
     var chart = d3.select("body").append("svg")
         .attr("class", "chart")
-        .attr("width", 430)
-        .attr("height", 20 * (data.length + 1))
-        .style("padding", "30px")
+        .attr("width", 450)
+        .attr("height", h + barSize)
+        //.style("padding", "30px")
         .append("g").attr("transform", "translate(10,15)");
 
     var x = d3.scale.linear()
-      .domain([0, d3.max(data)])
+      .domain([0, d3.max(data, function(d) { return d.value; })])
       .range([0, 420]);
 
     chart.selectAll("line")
@@ -66,7 +63,7 @@ body {
       .attr("x1", x)
       .attr("x2", x)
       .attr("y1", 0)
-      .attr("y2", 120)
+      .attr("y2", h)
       .style("stroke", "#ccc");
 
     chart.selectAll(".rule")
@@ -83,7 +80,7 @@ body {
       .data(data)
       .enter().append("rect")
       .attr("y", function(d, i) { return i*20; })
-      .attr("width", function(d) {return x(d);})
+      .attr("width", function(d) { return x(d.value); })
       .attr("height", 20);
 
     chart.selectAll(".bar")
@@ -99,7 +96,7 @@ body {
 
     chart.append("line")
       .attr("y1", 0)
-      .attr("y2", 120)
+      .attr("y2", h)
       .style("stroke", "#000");
 
     return chart;
