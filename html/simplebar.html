@@ -95,11 +95,11 @@ body {
       .enter().append("text")
       .attr("class", "bar")
       .attr("y", function(d, i) { return i*20 + 10; })
-      .attr("x", x)
+      .attr("x", function(d) { return x(d.value); })
       .attr("dx", -3)
       .attr("dy", ".35em")
       .attr("text-anchor", "end")
-      .text(String);
+      .text(function(d) {return d.value;});
 
     chart.append("line")
       .attr("y1", 0)
