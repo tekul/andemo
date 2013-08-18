@@ -31,7 +31,10 @@ body {
 <!-- script src="jquery-1.10.2.min.js"></script-->
 <script>
   var xdUrl="http://localhost:8080/metrics/aggregate-counters/bar?resolution=minute";
-  var chart;
+  var chart=d3.select("body").append("svg")
+        .attr("class", "chart")
+        .attr("width", 450)
+        .append("g").attr("transform", "translate(10,15)");
 
   function redraw() {
     d3.json(xdUrl)
@@ -42,71 +45,76 @@ body {
       while (data.length > 0 && data[0].value == 0) {
         data.shift();
       }
-      chart = drawChart(data);
+      drawChart(data);
     });
   }
 
-  redraw.call();
-//  setInterval(redraw, 1000);
+  setInterval(redraw, 1000);
 
   function drawChart(data) {
     var barSize = 20;
     // Scale the height to the number of data points
     var h = barSize * Math.max(10, data.length);
-    var chart = d3.select("body").append("svg")
+    d3.select("svg")
         .attr("class", "chart")
         .attr("width", 450)
-        .attr("height", h + barSize)
-        //.style("padding", "30px")
-        .append("g").attr("transform", "translate(10,15)");
+        .attr("height", h + barSize);
 
     var x = d3.scale.linear()
       .domain([0, d3.max(data, function(d) { return d.value; })])
       .range([0, 420]);
 
-    chart.selectAll("line")
-      .data(x.ticks(10))
-      .enter().append("line")
+    chart.selectAll("line").remove();
+
+    var lines = chart.selectAll("line")
+      .data(x.ticks(10));
+    lines.enter().append("line")
+      .attr("y1", 0)
+      .style("stroke", "#ccc");
+    lines.attr("y2", h)
       .attr("x1", x)
       .attr("x2", x)
-      .attr("y1", 0)
-      .attr("y2", h)
-      .style("stroke", "#ccc");
+    lines.exit().remove();
 
-    chart.selectAll(".rule")
-      .data(x.ticks(10))
-      .enter().append("text")
+    var rules = chart.selectAll(".rule")
+      .data(x.ticks(10));
+    rules.enter().append("text")
       .attr("class", "rule")
-      .attr("x", x)
       .attr("y", 0)
       .attr("dy", -3)
       .attr("text-anchor", "middle")
-      .text(String);
+    rules.attr("x", x)
+      .text(String)
+    rules.exit().remove();
 
-    chart.selectAll("rect")
-      .data(data)
-      .enter().append("rect")
-      .attr("y", function(d, i) { return i*20; })
-      .attr("width", function(d) { return x(d.value); })
+    var rects = chart.selectAll("rect")
+      .data(data);
+
+    rects.enter().append("rect")
       .attr("height", 20);
+    rects.attr("y", function(d, i) { return i*20; })
+         .attr("width", function(d) { return x(d.value); })
+    rects.exit().remove();
 
-    chart.selectAll(".bar")
-      .data(data)
-      .enter().append("text")
+    var bars = chart.selectAll(".bar")
+      .data(data);
+
+    bars.enter().append("text")
       .attr("class", "bar")
-      .attr("y", function(d, i) { return i*20 + 10; })
-      .attr("x", function(d) { return x(d.value); })
       .attr("dx", -3)
       .attr("dy", ".35em")
       .attr("text-anchor", "end")
+
+    bars.attr("y", function(d, i) { return i*20 + 10; })
+      .attr("x", function(d) { return x(d.value); })
       .text(function(d) {return d.value;});
+
+    bars.exit().remove();
 
     chart.append("line")
       .attr("y1", 0)
       .attr("y2", h)
       .style("stroke", "#000");
-
-    return chart;
   }
 
 </script>
