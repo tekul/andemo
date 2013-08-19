@@ -19,10 +19,6 @@ body {
 <!-- script src="jquery-1.10.2.min.js"></script-->
 <script>
   var xdUrl="http://localhost:8080/metrics/field-value-counters/lang";
-  var chart=d3.select("body").append("svg")
-        .attr("class", "chart")
-        .attr("width", 450)
-        .append("g").attr("transform", "translate(10,15)");
 
   var width = 960,
       height = 500,
@@ -45,6 +41,7 @@ body {
       .append("g")
       .attr("transform", "translate(" + width / 2 + "," + height / 2 + ")");
 
+  function redraw() {
     d3.json(xdUrl)
     .get(function(error, json) {
       if (error) return console.warn(error);
@@ -53,14 +50,17 @@ body {
       data.sort(function(a,b) { return a.value - b.value; });
       drawChart(data);
     });
-
-  //setInterval(redraw, 1000);
+  }
+  setInterval(redraw, 1000);
 
   function drawChart(data) {
+    svg.selectAll(".arc").remove();
     var g = svg.selectAll(".arc")
-        .data(pie(data))
-      .enter().append("g")
+        .data(pie(data));
+
+    g.enter().append("g")
         .attr("class", "arc");
+    g.exit().remove();
 
     g.append("path")
         .attr("d", arc)
