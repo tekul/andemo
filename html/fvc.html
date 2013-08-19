@@ -15,31 +15,19 @@ body {
 </style>
 </head>
 <body>
+
+<p id="pie">
+
 <script src="d3.v3.min.js"></script>
-<!-- script src="jquery-1.10.2.min.js"></script-->
+<script src="fvc.js"></script>
 <script>
   var xdUrl="http://localhost:8080/metrics/field-value-counters/lang";
 
-  var width = 960,
-      height = 500,
-      radius = Math.min(width, height) / 2;
-
-  var color = d3.scale.ordinal()
-      .range(["#98abc5", "#8a89a6", "#7b6888", "#6b486b", "#a05d56", "#d0743c", "#ff8c00"]);
-
-  var arc = d3.svg.arc()
-      .outerRadius(radius - 10)
-      .innerRadius(0);
-
-  var pie = d3.layout.pie()
-      .sort(null)
-      .value(function(d) { return d.value; });
-
-  var svg = d3.select("body").append("svg")
-      .attr("width", width)
-      .attr("height", height)
-      .append("g")
-      .attr("transform", "translate(" + width / 2 + "," + height / 2 + ")");
+  var chart = fvcPieChart()
+   .x(function(d) { return d.key; })
+   .y(function(d) { return +d.value; })
+   .width(960)
+   .height(500);
 
   function redraw() {
     d3.json(xdUrl)
@@ -48,30 +36,13 @@ body {
       var counts = new Array();
       var data = d3.entries(json.counts);
       data.sort(function(a,b) { return a.value - b.value; });
-      drawChart(data);
+      d3.select("#pie")
+          .datum(data)
+          .call(chart);
     });
   }
+//  redraw.call();
   setInterval(redraw, 1000);
-
-  function drawChart(data) {
-    svg.selectAll(".arc").remove();
-    var g = svg.selectAll(".arc")
-        .data(pie(data));
-
-    g.enter().append("g")
-        .attr("class", "arc");
-    g.exit().remove();
-
-    g.append("path")
-        .attr("d", arc)
-        .style("fill", function(d) { return color(d.data.key); });
-
-    g.append("text")
-        .attr("transform", function(d) { return "translate(" + arc.centroid(d) + ")"; })
-        .attr("dy", ".35em")
-        .style("text-anchor", "middle")
-        .text(function(d) { return d.data.key; });
-  }
 
 </script>
 </body>
