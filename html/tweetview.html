@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<style type="text/css">
+
+body {
+  font: 10px sans-serif;
+  text-rendering: optimizelegibility;
+}
+
+.arc path {
+    stroke: #fff;
+}
+
+.aggbar {
+  margin-left: 42px;
+  font: 10px sans-serif;
+  shape-rendering: crispEdges;
+}
+
+.aggbar rect {
+  stroke: white;
+  fill: steelblue;
+}
+
+.aggbar text.bar {
+  fill: white;
+}
+
+</style>
+</head>
+<body>
+
+<div id="pie"></div>
+
+<div id="bar"></div>
+
+<script src="d3.v3.min.js"></script>
+<script src="fvc.js"></script>
+<script src="aggcount.js"></script>
+<script>
+  var countUrl="http://localhost:8080/metrics/aggregate-counters/tweetcount?resolution=minute";
+  var fvcUrl="http://localhost:8080/metrics/field-value-counters/lang";
+
+  var barchart = aggregateCountBarChart()
+        .x(function(d) { return d.key; })
+        .y(function(d) { return +d.value; })
+        .width(450)
+        .height(500);
+
+
+  var piechart = fvcPieChart()
+        .x(function(d) { return d.key; })
+        .y(function(d) { return +d.value; })
+        .width(960)
+        .height(500);
+
+  function redraw() {
+    d3.json(countUrl)
+    .get(function(error, json) {
+      if (error) return console.warn(error);
+      var data = d3.entries(json.counts);
+      while (data.length > 0 && data[0].value == 0) {
+        data.shift();
+      }
+      d3.select("#bar")
+          .datum(data)
+          .call(barchart);
+    });
+    d3.json(fvcUrl)
+    .get(function(error, json) {
+      if (error) return console.warn(error);
+      var counts = new Array();
+      var data = d3.entries(json.counts);
+      data.sort(function(a,b) { return a.value - b.value; });
+      d3.select("#pie")
+          .datum(data)
+          .call(piechart);
+    });
+  }
+
+  setInterval(redraw, 1000);
+</script>
+</body>
+</html>
+
