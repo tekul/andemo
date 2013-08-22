@@ -5,7 +5,7 @@
 <style type="text/css">
 
 body {
-  font: 10px sans-serif;
+  font: 14px sans-serif;
   text-rendering: optimizelegibility;
 }
 
@@ -51,10 +51,11 @@ body {
 
 
   var piechart = fvcPieChart()
-        .x(function(d) { return d.key; })
-        .y(function(d) { return +d.value; })
-        .width(960)
-        .height(500);
+         .x(function(d) { return d.key; })
+         .y(function(d) { return +d.value; })
+         .width(500)
+         .height(500)
+         .r(200);
 
   function redraw() {
     d3.json(countUrl)
@@ -73,7 +74,7 @@ body {
       if (error) return console.warn(error);
       var counts = new Array();
       var data = d3.entries(json.counts);
-      data.sort(function(a,b) { return a.value - b.value; });
+      data.sort(function(a,b) { return b.value - a.value; });
       d3.select("#pie")
           .datum(data)
           .call(piechart);
