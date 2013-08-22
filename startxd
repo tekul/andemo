@@ -1,0 +1,18 @@
+#! /bin/sh
+
+# Create tmux session called 'xd' and run the admin server
+tmux new-session -d -s xd -n 'admin' "sh $XD_HOME/bin/xd-singlenode"
+
+# Create separate windows for xd-shell and nginx
+tmux new-window -t xd:2 -n 'shell' 'sleep 10 && sh $XD_HOME/../shell/bin/xd-shell'
+tmux new-window -t xd:3 -n 'nginx' 'sh ./start-nginx.sh'
+
+#tmux select-window -t 1
+# Create pane for nginx log
+#tmux split-window -t 1 -h -p 60 'sleep 30 && tail -f logs/nginx/access.log'
+# Re-select the nginx pane in case system password is needed
+#tmux select-pane -t 0
+
+tmux -2 attach-session -t xd
+
+
