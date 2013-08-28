@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<meta charset="utf-8">
+<title>Memory Gauge</title>
+<style>
+
+#mem { min-height: 153px; }
+
+.axis { font: 10px sans-serif; }
+.axis line { stroke: #000000; shape-rendering: crispedges;}
+.axis path { display: none; }
+
+</style>
+
+<div id="mem"></div>
+<div id="cpu"></div>
+
+<script src="d3.v2.js"></script>
+<script src="cubism.v1.js"></script>
+<!--script src="highlight.min.js"></script-->
+<script>
+var xdUrl="http://localhost:8080/metrics/richgauges/";
+
+function gauge(name) {
+  var value = 0,
+      values = new Array(960),
+      i = 0,
+      last;
+  return context.metric(function(start, stop, step, callback) {
+    start = +start, stop = +stop;
+    d3.json(xdUrl+name, function(json) {
+      values.push(+json.value);
+      values.shift();
+      callback(null, values.slice((start - stop) / step));
+    });
+  }, name);
+}
+
+</script>
+<script>
+
+var context = cubism.context()
+    .serverDelay(0)
+    .clientDelay(0)
+    .step(500)
+    .size(960);
+
+var memgauge = gauge("memgauge").subtract(6000);
+var cpugauge = gauge("cpugauge").multiply(-1).add(100);
+
+
+d3.select("#mem").call(function(div) {
+  div.datum(memgauge);
+
+  div.append("div")
+      .attr("class", "axis")
+      .call(context.axis().orient("top"));
+
+  div.append("div")
+      .attr("class", "horizon")
+      .call(context.horizon()
+        .height(300)
+        .title("Memory")
+        .extent([-3000, 3000]));
+
+});
+
+d3.select("#cpu").call(function(div) {
+  div.datum(cpugauge);
+
+  div.append("div")
+      .attr("class", "horizon")
+      .call(context.horizon()
+        .height(300)
+        .title("CPU")
+        .extent([0, 100]));
+});
+
+// On mousemove, reposition the chart values to match the rule.
+context.on("focus", function(i) {
+  d3.selectAll(".value").style("right", i == null ? null : context.size() - i + "px");
+});
+
+</script>
+

@@ -1,0 +1,11 @@
+#! /bin/sh
+
+while [ 1 ]
+do
+  MEM=`top -l 1 -n 1 | awk '/PhysMem:/ {print $8}' | sed 's/M//g'`
+  CPU=`top -l 3 -n 1 | tail -n 10 | awk '/CPU usage:/ {print $7}' | sed 's/%//g'`
+  echo "$CPU,$MEM"
+  curl -d $MEM http://localhost:9000
+  curl -d $CPU http://localhost:9001
+done
+

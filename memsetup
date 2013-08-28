@@ -1,0 +1,11 @@
+#! /bin/sh
+
+URL="http://localhost:8080"
+
+curl -v -H "Accept: application/json" -d name=mem -d definition=http+%7C+log "$URL/streams"
+
+curl -v -H "Accept: application/json" -d name=cpu -d definition="http+--port=9001+%7C+log" "$URL/streams"
+
+curl -v -H "Accept: application/json" -d name=memgauge -d definition="tap mem+%7C+richgauge" "$URL/taps"
+curl -v -H "Accept: application/json" -d name=cpugauge -d definition="tap cpu+%7C+richgauge" "$URL/taps"
+
