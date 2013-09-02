@@ -16,12 +16,15 @@ body {
 </head>
 <body>
 
+<p id="menu"><b>Field Value Counter: </b><select></select>
+
 <p id="pie">
+
 
 <script src="d3.v3.min.js"></script>
 <script src="fvc.js"></script>
 <script>
-  var xdUrl="http://localhost:8080/metrics/field-value-counters/lang";
+  var baseUrl = "http://localhost:8080/metrics/field-value-counters";
 
   var chart = fvcPieChart()
    .x(function(d) { return d.key; })
@@ -30,8 +33,13 @@ body {
    .height(500)
    .r(200);
 
+  var menu = d3.select("#menu select")
+      .on("change", change);
+
   function redraw() {
-    d3.json(xdUrl)
+    var counter = menu.property("value");
+    if (!counter) return;
+    d3.json(baseUrl + "/" + counter)
     .get(function(error, json) {
       if (error) return console.warn(error);
       var counts = new Array();
@@ -42,9 +50,25 @@ body {
           .call(chart);
     });
   }
-//  redraw.call();
+
+  function change() {
+    d3.select("#pie").select("svg").remove();
+    redraw();
+  }
+
   setInterval(redraw, 1000);
 
+  d3.json(baseUrl)
+      .get(function(error, json) {
+          if (error) return console.warn(error);
+          counters = json.content.map(function(d) {
+            return d.name;
+          });
+          menu.selectAll("option")
+                .data(counters)
+                .enter().append("option")
+                .text(function(d) { return d; });
+      });
 </script>
 </body>
 </html>
