@@ -58,8 +58,8 @@ function fvcPieChart() {
       height = 500,
       r      = 200,
       minSlice = 0.007,
-      xValue = function(d) { return d[0]; },
-      yValue = function(d) { return +d[1]; };
+      xValue = function(d) { return d.key; },
+      yValue = function(d) { return +d.value; };
 
   function chart(selection) {
     selection.each(function(data) {

@@ -29,59 +29,104 @@ body {
 }
 
 </style>
+<link href="css/bootstrap.min.css" rel="stylesheet" media="screen">
 </head>
 <body>
-
-<div id="pie"></div>
-
-<div id="bar"></div>
-
-<script src="d3.v3.min.js"></script>
-<script src="fvc.js"></script>
-<script src="aggcount.js"></script>
+<div class="container">
+  <div class="row">
+    <div class="span6">
+      <div class="row">
+        <div class="span6">
+          <p id="piemenu"><b>Field Value Counter: </b><select></select></p>
+          <p id="pie"></p>
+        </div>
+      </div>
+      <div class="row">
+        <div class="span6">
+          <p id="barmenu"><b>Aggregate Counter: </b><select></select> </p>
+          <p id="bar"></p>
+        </div>
+      </div>
+    </div>
+    <div class="span6">
+    </div>
+</div>
+<script src="js/jquery-1.10.2.min.js"></script>
+<script src="js/d3.v3.min.js"></script>
+<script src="js/fvc.js"></script>
+<script src="js/aggcount.js"></script>
+<script src="js/bootstrap.js"></script>
 <script>
-  var countUrl="http://localhost:8080/metrics/aggregate-counters/tweetcount?resolution=minute";
-  var fvcUrl="http://localhost:8080/metrics/field-value-counters/lang";
+  var baseUrl = "http://localhost:8080/metrics";
 
   var barchart = aggregateCountBarChart()
-        .x(function(d) { return d.key; })
-        .y(function(d) { return +d.value; })
         .width(450)
         .height(500);
 
-
   var piechart = fvcPieChart()
-         .x(function(d) { return d.key; })
-         .y(function(d) { return +d.value; })
          .width(500)
          .height(500)
          .r(200);
 
+  var piemenu = d3.select("#piemenu select")
+      .on("change", function() {
+        d3.select("#pie").select("svg").remove();
+        redraw();
+      });
+
+  var barmenu = d3.select("#barmenu select")
+      .on("change", function() {
+        d3.select("#bar").select("svg").remove();
+        redraw();
+      });
+
   function redraw() {
-    d3.json(countUrl)
-    .get(function(error, json) {
-      if (error) return console.warn(error);
-      var data = d3.entries(json.counts);
-      while (data.length > 0 && data[0].value == 0) {
-        data.shift();
-      }
-      d3.select("#bar")
-          .datum(data)
-          .call(barchart);
-    });
-    d3.json(fvcUrl)
-    .get(function(error, json) {
-      if (error) return console.warn(error);
-      var counts = new Array();
-      var data = d3.entries(json.counts);
-      data.sort(function(a,b) { return b.value - a.value; });
-      d3.select("#pie")
-          .datum(data)
-          .call(piechart);
+    var fvc = piemenu.property("value");
+    if (fvc) {
+      d3.json(baseUrl + "/field-value-counters/" + fvc)
+      .get(function(error, json) {
+        if (error) return console.warn(error);
+        var data = d3.entries(json.counts);
+        data.sort(function(a,b) { return b.value - a.value; });
+        d3.select("#pie")
+            .datum(data)
+            .call(piechart);
+      });
+    }
+    var bar = barmenu.property("value");
+    if (bar) {
+      d3.json(baseUrl + "/aggregate-counters/" + bar + "?resolution=minute")
+      .get(function(error, json) {
+        if (error) return console.warn(error);
+        var data = d3.entries(json.counts);
+        while (data.length > 0 && data[0].value == 0) {
+          data.shift();
+        }
+        d3.select("#bar")
+            .datum(data)
+            .call(barchart);
+      });
+    }
+  }
+
+  function setMenuOptions(menu, metricType) {
+    d3.json(baseUrl + "/" + metricType)
+        .get(function(error, json) {
+            if (error) return console.warn(error);
+            var counters = json.content.map(function(d) {
+              return d.name;
+            });
+            menu.selectAll("option")
+                .data(counters)
+                .enter().append("option")
+                .text(function(d) { return d; });
     });
   }
 
-  setInterval(redraw, 1000);
+  setMenuOptions(piemenu, "field-value-counters");
+  setMenuOptions(barmenu, "aggregate-counters");
+
+  setInterval(redraw, 2000);
 </script>
 </body>
 </html>

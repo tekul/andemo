@@ -1,19 +1,16 @@
 function aggregateCountBarChart() {
-  var margin = {top: 20, right: 20, bottom: 20, left: 20},
+  var margin = {top: 50, right: 20, bottom: 20, left: 20},
       width = 450,
       height = 500,
       xScale = d3.scale.linear(),
       yScale = d3.scale.linear(),
-      xValue = function(d) { return d[0]; },
-      yValue = function(d) { return +d[1]; };
+      xValue = function(d) { return d.key; },
+      yValue = function(d) { return +d.value; };
 
-  var barSize = 20;
-
+  var barSize = 10;
 
   function chart(selection) {
      selection.each(function(data) {
-      // Convert data to standard representation greedily;
-      // this is needed for nondeterministic accessors.
       data = data.map(function(d, i) {
         return [xValue.call(data, d, i), yValue.call(data, d, i)];
       });
@@ -23,12 +20,6 @@ function aggregateCountBarChart() {
           .domain([0, d3.max(data, function(d) { return d[1]; })])
           .range([0, width - margin.left - margin.right]);
 
-      // Update the y-scale.
-      //yScale
-      //    .domain([0, d3.max(data, function(d) { return d[1]; })])
-      //    .range([height - margin.top - margin.bottom, 0]);
-
-     // var h = height;
       var h = barSize * Math.max(10, data.length);
      
       var svg = d3.select(this).selectAll("svg").data([data]);
@@ -38,7 +29,7 @@ function aggregateCountBarChart() {
         .attr("class", "aggbar")
         .append("g");
       svg.attr("width", width);
-      svg.attr("height", h + barSize);
+      svg.attr("height", h + barSize + margin.top);
 
       var g = svg.select("g")
           .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
@@ -70,8 +61,8 @@ function aggregateCountBarChart() {
         .data(data);
 
       rects.enter().append("rect")
-        .attr("height", 20);
-      rects.attr("y", function(d, i) { return i*20; })
+        .attr("height", barSize);
+      rects.attr("y", function(d, i) { return i*barSize; })
            .attr("width", function(d) { return xScale(d[1]); });
       rects.exit().remove();
 
@@ -84,7 +75,7 @@ function aggregateCountBarChart() {
         .attr("dy", ".35em")
         .attr("text-anchor", "end");
 
-      bars.attr("y", function(d, i) { return i*20 + 10; })
+      bars.attr("y", function(d, i) { return i*barSize + barSize/2; })
         .attr("x", function(d) { return xScale(d[1]); })
         .text(function(d) {return d[1];});
 
