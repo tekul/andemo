@@ -1,5 +1,5 @@
 function fvcBubbleChart() {
-  var diameter = 960,
+  var diameter = 800,
       format = d3.format(",d"),
       color = d3.scale.category20c();
 
@@ -45,6 +45,12 @@ function fvcBubbleChart() {
       nodes.select("text").text(function(d) {return d.key.substring(0, d.r / 3); });
     });
   }
+
+  chart.diameter = function(_) {
+    if (!arguments.length) return diameter;
+    diameter = _;
+    return chart;
+  };
 
   return chart;
 }

@@ -5,7 +5,7 @@
 <style type="text/css">
 
 body {
-  font: 14px sans-serif;
+  font: 12px sans-serif;
   text-rendering: optimizelegibility;
 }
 
@@ -32,23 +32,25 @@ body {
 <link href="css/bootstrap.min.css" rel="stylesheet" media="screen">
 </head>
 <body>
-<div class="container">
-  <div class="row">
-    <div class="span6">
-      <div class="row">
-        <div class="span6">
-          <p id="piemenu"><b>Field Value Counter: </b><select></select></p>
+<div class="container-fluid">
+  <div class="row-fluid">
+    <div class="span5">
+      <div class="row-fluid">
+        <div class="span5">
+          <p id="piemenu"><b>Field Value Counter: </b><br><select></select></p>
           <p id="pie"></p>
         </div>
       </div>
-      <div class="row">
-        <div class="span6">
-          <p id="barmenu"><b>Aggregate Counter: </b><select></select> </p>
+      <div class="row-fluid">
+        <div class="span5">
+          <p id="barmenu"><b>Aggregate Counter: </b><br><select></select> </p>
           <p id="bar"></p>
         </div>
       </div>
     </div>
-    <div class="span6">
+    <div class="span7">
+      <p id="bubblemenu"><b>Field Value Counter: </b><br><select></select></p>
+      <p id="bubbles"></p>
     </div>
 </div>
 <script src="js/jquery-1.10.2.min.js"></script>
@@ -68,17 +70,25 @@ body {
          .height(500)
          .r(200);
 
-  var piemenu = d3.select("#piemenu select")
+  var bubblechart = fvcBubbleChart()
+         .diameter(700);
+
+  var piemenu = d3.select("#piemenu select");/*
       .on("change", function() {
-        d3.select("#pie").select("svg").remove();
         redraw();
-      });
+      });*/
 
   var barmenu = d3.select("#barmenu select")
       .on("change", function() {
         d3.select("#bar").select("svg").remove();
         redraw();
       });
+
+  var bubblemenu = d3.select("#bubblemenu select");/*
+      .on("change", function() {
+        redraw();
+      });*/
+
 
   function redraw() {
     var fvc = piemenu.property("value");
@@ -91,6 +101,19 @@ body {
         d3.select("#pie")
             .datum(data)
             .call(piechart);
+      });
+    }
+    fvc = bubblemenu.property("value");
+    if (fvc) {
+      d3.json(baseUrl + "/field-value-counters/" + fvc)
+      .get(function(error, json) {
+        if (error) return console.warn(error);
+        var data = d3.entries(json.counts);
+        data.sort(function(a,b) { return b.value - a.value; });
+        data.splice(500);
+        d3.select("#bubbles")
+            .datum(data)
+            .call(bubblechart);
       });
     }
     var bar = barmenu.property("value");
@@ -113,19 +136,21 @@ body {
     d3.json(baseUrl + "/" + metricType)
         .get(function(error, json) {
             if (error) return console.warn(error);
-            var counters = json.content.map(function(d) {
+            var metrics = json.content.map(function(d) {
               return d.name;
             });
             menu.selectAll("option")
-                .data(counters)
+                .data(metrics.sort().reverse())
                 .enter().append("option")
                 .text(function(d) { return d; });
     });
   }
 
   setMenuOptions(piemenu, "field-value-counters");
+  setMenuOptions(bubblemenu, "field-value-counters");
   setMenuOptions(barmenu, "aggregate-counters");
 
+  redraw.call();
   setInterval(redraw, 2000);
 </script>
 </body>
