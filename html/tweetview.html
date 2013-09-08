@@ -14,7 +14,7 @@ body {
 }
 
 .aggbar {
-  margin-left: 42px;
+  margin-left: 10px;
   font: 10px sans-serif;
   shape-rendering: crispEdges;
 }
@@ -28,6 +28,9 @@ body {
   fill: white;
 }
 
+.gauge {
+  margin-left: 10px;
+}
 </style>
 <link href="css/bootstrap.min.css" rel="stylesheet" media="screen">
 </head>
@@ -44,6 +47,7 @@ body {
       <div class="row-fluid">
         <div class="span5">
           <p id="barmenu"><b>Aggregate Counter: </b><br><select></select> </p>
+          <p id="gauges"><span id="tpsGauge"></span></p>
           <p id="bar"></p>
         </div>
       </div>
@@ -58,6 +62,7 @@ body {
 <script src="js/fvc.js"></script>
 <script src="js/aggcount.js"></script>
 <script src="js/bootstrap.js"></script>
+<script src="js/gauge.js"></script>
 <script>
   var baseUrl = "http://localhost:8080/metrics";
 
@@ -73,10 +78,7 @@ body {
   var bubblechart = fvcBubbleChart()
          .diameter(700);
 
-  var piemenu = d3.select("#piemenu select");/*
-      .on("change", function() {
-        redraw();
-      });*/
+  var piemenu = d3.select("#piemenu select");
 
   var barmenu = d3.select("#barmenu select")
       .on("change", function() {
@@ -84,11 +86,11 @@ body {
         redraw();
       });
 
-  var bubblemenu = d3.select("#bubblemenu select");/*
-      .on("change", function() {
-        redraw();
-      });*/
+  var bubblemenu = d3.select("#bubblemenu select");
 
+  var tpsGauge = createGauge("tpsGauge", "Tweets/s", 0, 200);
+  var lastTweetCount = -1;
+  tpsGauge.render();
 
   function redraw() {
     var fvc = piemenu.property("value");
@@ -125,11 +127,39 @@ body {
         while (data.length > 0 && data[0].value == 0) {
           data.shift();
         }
+
+        var seconds = new Date().getSeconds();
+        var lastMinsTweets = data[data.length - 1].value;
+        var tps = 0;
+        if (seconds == 0) {
+          tps = lastMinsTweets;
+        } else {
+          tps = lastTweetCount < 0 ? 0 : lastMinsTweets - lastTweetCount;
+        }
+        lastTweetCount = lastMinsTweets;
+        tpsGauge.redraw(tps);
+
         d3.select("#bar")
             .datum(data)
             .call(barchart);
       });
     }
+  }
+
+  function createGauge(name, label, min, max) {
+    var config = {
+      size: 120,
+      label: label,
+      min: undefined != min ? min : 0,
+      max: undefined != max ? max : 100,
+      minorTicks: 5
+    }
+
+    var range = config.max - config.min;
+    config.yellowZones = [{ from: config.min + range*0.75, to: config.min + range*0.9 }];
+    config.redZones = [{ from: config.min + range*0.9, to: config.max }];
+
+    return new Gauge(name, config);
   }
 
   function setMenuOptions(menu, metricType) {
