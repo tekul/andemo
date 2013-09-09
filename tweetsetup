@@ -6,10 +6,6 @@ create_stream() {
   curl -v -H "Accept: application/json" -d name=$1 --data-urlencode "definition=$2" "$URL/streams"
 }
 
-create_tap() {
-  curl -v -H "Accept: application/json" -d name=$1 --data-urlencode "definition=$2" "$URL/taps"
-}
-
 undeploy_stream() {
   curl -v -H "Accept: application/json" -X PUT -d deploy=false "$URL/streams/$1"
 }
@@ -22,11 +18,11 @@ create_stream "tweets" "twitterstream | file"
 
 undeploy_stream "tweets"
 
-create_tap "tweetcount" "tap tweets | aggregatecounter"
+create_stream "tweetcount" "tap:tweets > aggregatecounter"
 
-create_tap "tweetlang" "tap tweets | field-value-counter --fieldName=lang"
+create_stream "tweetlang" "tap:tweets > field-value-counter --fieldName=lang"
 
-create_tap "tagcount" "tap tweets | field-value-counter --fieldName=entities.hashtags.text --counterName=hashtags"
+create_stream "tagcount" "tap:tweets > field-value-counter --fieldName=entities.hashtags.text --counterName=hashtags"
 
 deploy_stream "tweets"
 

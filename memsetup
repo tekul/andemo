@@ -2,10 +2,16 @@
 
 URL="http://localhost:8080"
 
-curl -v -H "Accept: application/json" -d name=mem -d definition=http+%7C+log "$URL/streams"
+create_stream() {
+  curl -v -H "Accept: application/json" -d name=$1 --data-urlencode "definition=$2" "$URL/streams"
+}
 
-curl -v -H "Accept: application/json" -d name=cpu -d definition="http+--port=9001+%7C+log" "$URL/streams"
+undeploy_stream() {
+  curl -v -H "Accept: application/json" -X PUT -d deploy=false "$URL/streams/$1"
+}
 
-curl -v -H "Accept: application/json" -d name=memgauge -d definition="tap mem+%7C+richgauge" "$URL/taps"
-curl -v -H "Accept: application/json" -d name=cpugauge -d definition="tap cpu+%7C+richgauge" "$URL/taps"
+create_stream mem "http | log"
+create_stream cpu "http --port=9001 | log"
+create_stream memgauge "tap:mem > richgauge"
+create_stream cpugauge "tap:cpu > richgauge"
 
