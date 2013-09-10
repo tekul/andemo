@@ -28,9 +28,6 @@ body {
   fill: white;
 }
 
-.gauge {
-  margin-left: 10px;
-}
 </style>
 <link href="css/bootstrap.min.css" rel="stylesheet" media="screen">
 </head>
@@ -45,9 +42,15 @@ body {
         </div>
       </div>
       <div class="row-fluid">
-        <div class="span5">
-          <p id="barmenu"><b>Aggregate Counter: </b><br><select></select> </p>
-          <p id="gauges"><span id="tpsGauge"></span></p>
+        <div class="span6">
+          <div id="barmenu"><b>Aggregate Counter: </b><br><select></select> </div>
+        </div>
+        <div class="span6">
+          <div id="gauges"><p id="tpsGauge"></p></div>
+        </div>
+      </div>
+      <div class="row-fluid">
+        <div class="span12">
           <p id="bar"></p>
         </div>
       </div>
@@ -71,9 +74,9 @@ body {
         .height(500);
 
   var piechart = fvcPieChart()
-         .width(500)
-         .height(500)
-         .r(200);
+         .width(350)
+         .height(350)
+         .r(150);
 
   var bubblechart = fvcBubbleChart()
          .diameter(700);
