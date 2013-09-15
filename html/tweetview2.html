@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<style type="text/css">
+
+body {
+  font: 12px sans-serif;
+  text-rendering: optimizelegibility;
+}
+
+.arc path {
+    stroke: #fff;
+}
+
+.aggbar {
+  margin-left: 2px;
+  font: 10px sans-serif;
+  shape-rendering: crispEdges;
+}
+
+.aggbar rect {
+  stroke: white;
+  fill: steelblue;
+}
+
+.aggbar text.bar {
+  fill: white;
+}
+
+</style>
+<link href="css/bootstrap.min.css" rel="stylesheet" media="screen">
+</head>
+<body>
+<div class="container-fluid">
+  <div class="row-fluid">
+    <div class="span6">
+      <div class="row-fluid">
+        <div class="span12">
+          <p id="piemenu"><b>Field Value Counter: </b><br><select></select></p>
+          <p id="pie"></p>
+        </div>
+      </div>
+      <div class="row-fluid">
+        <div class="span6">
+          <div id="barmenu"><b>Aggregate Counter: </b><br><select></select> </div>
+        </div>
+        <div class="span6">
+          <div id="gauges"><p id="tpsGauge"></p></div>
+        </div>
+      </div>
+      <div class="row-fluid">
+        <div class="span12">
+          <p id="bar"></p>
+        </div>
+      </div>
+    </div>
+    <div class="span6">
+      <p id="bubblemenu"><b>Field Value Counter: </b><br><select></select></p>
+      <p id="bubbles"></p>
+    </div>
+</div>
+<script src="js/jquery-1.10.2.min.js"></script>
+<script src="js/d3.v3.min.js"></script>
+<script src="js/fvc.js"></script>
+<script src="js/aggcount.js"></script>
+<script src="js/bootstrap.js"></script>
+<script src="js/gauge.js"></script>
+<script>
+  var baseUrl = "http://localhost:8080/metrics";
+
+  var barchart = aggregateCountBarChart()
+        .width(400)
+        .height(500);
+
+  var piechart = fvcPieChart()
+         .width(350)
+         .height(350)
+         .r(150);
+
+  var bubblechart = fvcBubbleChart()
+         .diameter(450);
+
+  var piemenu = d3.select("#piemenu select");
+
+  var barmenu = d3.select("#barmenu select")
+      .on("change", function() {
+        d3.select("#bar").select("svg").remove();
+        redraw();
+      });
+
+  var bubblemenu = d3.select("#bubblemenu select");
+
+  var tpsGauge = createGauge("tpsGauge", "Tweets/s", 0, 200);
+  var lastTweetCount = -1;
+  tpsGauge.render();
+
+  function redraw() {
+    var fvc = piemenu.property("value");
+    if (fvc) {
+      d3.json(baseUrl + "/field-value-counters/" + fvc)
+      .get(function(error, json) {
+        if (error) return console.warn(error);
+        var data = d3.entries(json.counts);
+        data.sort(function(a,b) { return b.value - a.value; });
+        d3.select("#pie")
+            .datum(data)
+            .call(piechart);
+      });
+    }
+    fvc = bubblemenu.property("value");
+    if (fvc) {
+      d3.json(baseUrl + "/field-value-counters/" + fvc)
+      .get(function(error, json) {
+        if (error) return console.warn(error);
+        var data = d3.entries(json.counts);
+        data.sort(function(a,b) { return b.value - a.value; });
+        data.splice(500);
+        d3.select("#bubbles")
+            .datum(data)
+            .call(bubblechart);
+      });
+    }
+    var bar = barmenu.property("value");
+    if (bar) {
+      d3.json(baseUrl + "/aggregate-counters/" + bar + "?resolution=minute")
+      .get(function(error, json) {
+        if (error) return console.warn(error);
+        var data = d3.entries(json.counts);
+        while (data.length > 0 && data[0].value == 0) {
+          data.shift();
+        }
+
+        var seconds = new Date().getSeconds();
+        var lastMinsTweets = data[data.length - 1].value;
+        var tps = 0;
+        if (seconds == 0) {
+          tps = lastMinsTweets;
+        } else {
+          tps = lastTweetCount < 0 ? 0 : lastMinsTweets - lastTweetCount;
+        }
+        lastTweetCount = lastMinsTweets;
+        tpsGauge.redraw(tps);
+
+        d3.select("#bar")
+            .datum(data)
+            .call(barchart);
+      });
+    }
+  }
+
+  function createGauge(name, label, min, max) {
+    var config = {
+      size: 100,
+      label: label,
+      min: undefined != min ? min : 0,
+      max: undefined != max ? max : 100,
+      minorTicks: 5
+    }
+
+    var range = config.max - config.min;
+    config.yellowZones = [{ from: config.min + range*0.75, to: config.min + range*0.9 }];
+    config.redZones = [{ from: config.min + range*0.9, to: config.max }];
+
+    return new Gauge(name, config);
+  }
+
+  function setMenuOptions(menu, metricType) {
+    d3.json(baseUrl + "/" + metricType)
+        .get(function(error, json) {
+            if (error) return console.warn(error);
+            var metrics = json.content.map(function(d) {
+              return d.name;
+            });
+            menu.selectAll("option")
+                .data(metrics.sort().reverse())
+                .enter().append("option")
+                .text(function(d) { return d; });
+    });
+  }
+
+  setMenuOptions(piemenu, "field-value-counters");
+  setMenuOptions(bubblemenu, "field-value-counters");
+  setMenuOptions(barmenu, "aggregate-counters");
+
+  redraw.call();
+  setInterval(redraw, 2000);
+</script>
+</body>
+</html>
+
