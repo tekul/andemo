@@ -1,6 +1,6 @@
 #! /bin/sh
 
-URL="http://localhost:8080"
+URL="http://localhost:9393"
 
 create_stream() {
   curl -v -H "Accept: application/json" -d name=$1 --data-urlencode "definition=$2" "$URL/streams"
@@ -15,7 +15,7 @@ deploy_stream() {
 }
 
 create_stream "tweets" "twitterstream | file"
-
+sleep 2
 undeploy_stream "tweets"
 
 create_stream "tweetcount" "tap:tweets > aggregatecounter"
@@ -24,5 +24,4 @@ create_stream "tweetlang" "tap:tweets > field-value-counter --fieldName=lang"
 
 create_stream "tagcount" "tap:tweets > field-value-counter --fieldName=entities.hashtags.text --counterName=hashtags"
 
-deploy_stream "tweets"
 

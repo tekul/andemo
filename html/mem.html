@@ -17,7 +17,7 @@
 <script src="js/d3.v2.js"></script>
 <script src="js/cubism.v1.js"></script>
 <script>
-var xdUrl="http://localhost:8080/metrics/richgauges/";
+var xdUrl="http://localhost:9393/metrics/richgauges/";
 
 function gauge(name) {
   var value = 0,
@@ -40,7 +40,7 @@ function gauge(name) {
 var context = cubism.context()
     .serverDelay(0)
     .clientDelay(0)
-    .step(500)
+    .step(1000)
     .size(960);
 
 var memgauge = gauge("memgauge").subtract(6000);

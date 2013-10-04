@@ -30,7 +30,7 @@ body {
 <script src="js/d3.v3.min.js"></script>
 <script src="js/aggcount.js"></script>
 <script>
-  var xdUrl="http://localhost:8080/metrics/aggregate-counters/bar?resolution=minute";
+  var xdUrl="http://localhost:9393/metrics/aggregate-counters/bar?resolution=minute";
 
   var chart = aggregateCountBarChart()
         .x(function(d) { return d.key; })

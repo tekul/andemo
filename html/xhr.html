@@ -11,7 +11,7 @@
 
 
 var xhr = new XMLHttpRequest();
-xhr.open('GET', 'http://localhost:8080/metrics/aggregate-counters/bar');
+xhr.open('GET', 'http://localhost:9393/metrics/aggregate-counters/bar');
 xhr.onreadystatechange = function () {
   if (this.status == 200 && this.readyState == 4) {
     console.log('response: ' + this.responseText);

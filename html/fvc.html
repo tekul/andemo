@@ -24,7 +24,7 @@ body {
 <script src="js/d3.v3.min.js"></script>
 <script src="js/fvc.js"></script>
 <script>
-  var baseUrl = "http://localhost:8080/metrics/field-value-counters";
+  var baseUrl = "http://localhost:9393/metrics/field-value-counters";
 
   var chart = fvcPieChart()
    .x(function(d) { return d.key; })

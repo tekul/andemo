@@ -1,6 +1,6 @@
 #! /bin/sh
 
-URL="http://localhost:8080"
+URL="http://localhost:9393"
 
 create_stream() {
   curl -v -H "Accept: application/json" -d name=$1 --data-urlencode "definition=$2" "$URL/streams"
