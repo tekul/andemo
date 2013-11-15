@@ -18,10 +18,10 @@ create_stream "tweets" "twitterstream | file"
 sleep 2
 undeploy_stream "tweets"
 
-create_stream "tweetcount" "tap:tweets > aggregatecounter"
+create_stream "tweetcount" "tap:stream:tweets > aggregatecounter"
 
-create_stream "tweetlang" "tap:tweets > field-value-counter --fieldName=lang"
+create_stream "tweetlang" "tap:stream:tweets > field-value-counter --fieldName=lang"
 
-create_stream "tagcount" "tap:tweets > field-value-counter --fieldName=entities.hashtags.text --counterName=hashtags"
+create_stream "tagcount" "tap:stream:tweets > field-value-counter --fieldName=entities.hashtags.text --counterName=hashtags"
 
 
